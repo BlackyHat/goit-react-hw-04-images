@@ -1,70 +1,64 @@
+import PropTypes from 'prop-types';
+import { useState, useEffect } from 'react';
+import * as API from 'services/api';
+import Snowfall from 'react-snowfall';
 import Loader from 'components/Loader/Loader';
 import Button from 'components/Button/Button';
 import ImageGallery from 'components/ImageGallery/ImageGallery';
 import Searchbar from 'components/Searchbar/Searchbar';
-import React, { Component } from 'react';
-import * as API from 'services/api';
-import PropTypes from 'prop-types';
 
-class ImgFinder extends Component {
-  state = {
-    page: 1,
-    query: '',
-    totalPages: 0,
-    images: [],
-    isLoading: false,
-  };
+export default function ImgFinder() {
+  const [page, setPage] = useState(1);
+  const [query, setQuery] = useState('snowboard');
+  const [totalPages, setTotalPages] = useState(0);
+  const [images, setImages] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
 
-  async componentDidUpdate(prevProps, prevState) {
-    const { query, page } = this.state;
-
-    if (prevState.page !== page) {
-      this.setState({ isLoading: true });
-      const { hits } = await API.searchImage(query, page);
-      this.setState(prevState => ({
-        images: [...prevState.images, ...hits],
-        isLoading: false,
-      }));
+  useEffect(() => {
+    if (!query) {
+      return;
     }
-    if (prevState.query !== query) {
-      this.setState({ isLoading: true });
+
+    setIsLoading(true);
+    async function getImages(query, page) {
       const { hits, totalHits } = await API.searchImage(query, page);
-      this.setState({
-        images: hits,
-        totalPages: Math.floor(totalHits / API.PER_PAGE),
-        isLoading: false,
-      });
+      setImages(page === 1 ? hits : images => [...images, ...hits]);
+      setTotalPages(Math.floor(totalHits / API.PER_PAGE));
+      setIsLoading(false);
+
+      return;
     }
-  }
+    getImages(query, page);
+    setTotalPages(Math.floor(2 / API.PER_PAGE));
+  }, [query, page]);
 
-  handleSubmit = query => {
-    this.setState(prevState => {
-      return {
-        query: query,
-        page: 1,
-      };
-    });
+  const handleSubmit = query => {
+    setQuery(query);
+    setPage(1);
   };
 
-  loadMore = () => {
-    this.setState(prevState => ({ page: prevState.page + 1 }));
+  const loadMore = () => {
+    setPage(page => page + 1);
   };
 
-  render() {
-    const { images, isLoading, totalPages, page } = this.state;
-    const isShowLoadMore = totalPages > 0 && totalPages > page;
-    return (
-      <>
-        <Searchbar onSubmit={this.handleSubmit} />
-        <ImageGallery images={images} />
-        {isLoading && <Loader />}
-        {isShowLoadMore && <Button onLoadMore={this.loadMore} />}
-      </>
-    );
-  }
+  const isShowLoadMore = totalPages > 0 && totalPages > page;
+  return (
+    <>
+      <Searchbar onSubmit={handleSubmit} />
+      <ImageGallery images={images} />
+      {isLoading && <Loader />}
+      {isShowLoadMore && <Button onLoadMore={loadMore} />}
+      <Snowfall
+        style={{
+          position: 'fixed',
+          width: '100vw',
+          height: '100vh',
+          zIndex: '1111',
+        }}
+      />{' '}
+    </>
+  );
 }
-
-export default ImgFinder;
 
 ImgFinder.propTypes = {
   images: PropTypes.arrayOf(

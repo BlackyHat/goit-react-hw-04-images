@@ -1,53 +1,37 @@
-import Modal from 'components/Modal/Modal';
-import React, { Component } from 'react';
 import PropTypes from 'prop-types';
+import { useState } from 'react';
+import { useToggle } from '../hooks/useToggle';
+import Modal from 'components/Modal/Modal';
 
-class ImageGalleryItem extends Component {
-  state = {
-    showModal: false,
-    bigUrl: '1',
-    tag: '2',
+export default function ImageGalleryItem({ images }) {
+  const [bigUrl, setBigUrl] = useState('');
+  const [tag, setTag] = useState('');
+  const { isOpen, toggleModal } = useToggle();
+
+  const getImage = e => {
+    setBigUrl(e.target.dataset.largeimg);
+    setTag(e.target.alt);
+    toggleModal();
   };
 
-  getImage = e => {
-    this.setState(({ bigUrl }) => ({
-      bigUrl: e.target.dataset.largeimg,
-    }));
-    this.toggleModal();
-  };
-
-  toggleModal = () => {
-    this.setState(({ showModal }) => ({
-      showModal: !showModal,
-    }));
-  };
-
-  render() {
-    const { showModal, bigUrl, tag } = this.state;
-
-    return (
-      <>
-        {this.props.images.map(image => (
-          <li className="ImageGalleryItem" key={image.id}>
-            <img
-              src={image.webformatURL}
-              data-largeimg={image.largeImageURL}
-              alt={image.tags}
-              className="ImageGalleryItemImage"
-              onClick={this.getImage}
-              loading="lazy"
-            />
-          </li>
-        ))}
-        {showModal && (
-          <Modal src={bigUrl} alt={tag} toggleModal={this.toggleModal} />
-        )}
-      </>
-    );
-  }
+  return (
+    <>
+      {images.map(image => (
+        <li className="ImageGalleryItem" key={image.id}>
+          <img
+            src={image.webformatURL}
+            data-largeimg={image.largeImageURL}
+            alt={image.tags}
+            className="ImageGalleryItemImage"
+            onClick={getImage}
+            loading="lazy"
+          />
+        </li>
+      ))}
+      {isOpen && <Modal src={bigUrl} alt={tag} toggleModal={toggleModal} />}
+    </>
+  );
 }
-
-export default ImageGalleryItem;
 
 ImageGalleryItem.propTypes = {
   images: PropTypes.arrayOf(

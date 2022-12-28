@@ -2,4 +2,5 @@
 
 Educational project. Creating by using crate-react-app
 
-Service ImageGallery by Pixabay API: Searchbar, ImageGallery, Loader, Modal;
+Service ImageGallery by Pixabay API: Searchbar, ImageGallery, Loader, Modal; add
+hooks;
